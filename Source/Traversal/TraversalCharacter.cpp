@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "ParkourAbility.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -54,12 +55,30 @@ ATraversalCharacter::ATraversalCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
 	DefCharSprintSpeed = GetCharacterMovement()->MaxWalkSpeed;
+
+	//GAS
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComp"));
+	AttributeSet = CreateDefaultSubobject<UMyAttributeSet>(TEXT("AttributeSet"));
+}
+
+UAbilitySystemComponent* ATraversalCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 void ATraversalCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//init Ability
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+		FGameplayAbilitySpec Spec(UParkourAbility::StaticClass());
+		
+		//AbilitySystemComponent->GiveAbility(Spec);
+		ParkourAbilityHandle = AbilitySystemComponent->GiveAbility(Spec);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -189,6 +208,9 @@ void ATraversalCharacter::SprintCompleted(const FInputActionValue& Value)
 
 void ATraversalCharacter::ParkourTrigered(const FInputActionValue& Value)
 {
-
-	UE_LOG(LogTemp, Log, TEXT("Special!!"));
+	//UE_LOG(LogTemp, Log, TEXT("Special!!"));
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->TryActivateAbility(ParkourAbilityHandle);
+	}
 }

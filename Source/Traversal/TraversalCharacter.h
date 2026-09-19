@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "MyAttributeSet.h"
 #include "TraversalCharacter.generated.h"
 
 class USpringArmComponent;
@@ -16,7 +19,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class ATraversalCharacter : public ACharacter
+class ATraversalCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -72,6 +75,12 @@ public:
 	UFUNCTION()
 	float GetDefCharWalkSpeed();
 
+	//GAS getter from interface
+	UFUNCTION()
+	UAbilitySystemComponent* GetAbilitySystemComponent() const;
+
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -97,6 +106,23 @@ protected:
 	void ParkourTrigered(const FInputActionValue& Value);
 
 	bool bIsSprinting = false;
+
+	//GAS Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameplayAbilitySystem")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	//AttributeSet
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameplayAbilitySystem")
+	UMyAttributeSet* AttributeSet;
+
+	//Parkour Ability
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayAbilitySystem")
+	TSubclassOf<UGameplayAbility> ParkourAbilityClass;
+
+	//Ability Handle
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayAbilitySystem")
+	FGameplayAbilitySpecHandle ParkourAbilityHandle;
+
 protected:
 
 	virtual void NotifyControllerChanged() override;
