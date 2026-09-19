@@ -75,6 +75,21 @@ public:
 	UFUNCTION()
 	float GetDefCharWalkSpeed();
 
+	UFUNCTION()
+	float GetCharStepHeight();
+
+	UFUNCTION()
+	float GetCharCapsuleHalfHeight();
+
+	UFUNCTION()
+	FVector GetCharForwardVector();
+
+	UFUNCTION()
+	float GetCharSpeed();
+
+	UFUNCTION()
+	void SetCharCollisionAndMovementMode(ECollisionEnabled::Type Collision, EMovementMode MoveMode);
+
 	//GAS getter from interface
 	UFUNCTION()
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
@@ -103,7 +118,7 @@ protected:
 
 	/** Called when use Parkour Special key **/
 	UFUNCTION()
-	void ParkourTrigered(const FInputActionValue& Value);
+	void ParkourStarted(const FInputActionValue& Value);
 
 	bool bIsSprinting = false;
 

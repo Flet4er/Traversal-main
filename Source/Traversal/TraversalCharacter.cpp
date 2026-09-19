@@ -74,10 +74,10 @@ void ATraversalCharacter::BeginPlay()
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
-		FGameplayAbilitySpec Spec(UParkourAbility::StaticClass());
+		//FGameplayAbilitySpec Spec(UParkourAbility::StaticClass());
 		
 		//AbilitySystemComponent->GiveAbility(Spec);
-		ParkourAbilityHandle = AbilitySystemComponent->GiveAbility(Spec);
+		//ParkourAbilityHandle = AbilitySystemComponent->GiveAbility(Spec);
 	}
 }
 
@@ -119,7 +119,7 @@ void ATraversalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATraversalCharacter::SprintCompleted);
 
 		//Parkour
-		EnhancedInputComponent->BindAction(SpecialAction, ETriggerEvent::Triggered, this, &ATraversalCharacter::ParkourTrigered);
+		EnhancedInputComponent->BindAction(SpecialAction, ETriggerEvent::Started, this, &ATraversalCharacter::ParkourStarted);
 	}
 	else
 	{
@@ -178,6 +178,32 @@ float ATraversalCharacter::GetDefCharWalkSpeed()
 	return(DefCharSprintSpeed);
 }
 
+float ATraversalCharacter::GetCharStepHeight()
+{
+	return GetCharacterMovement()->MaxStepHeight;
+}
+
+float ATraversalCharacter::GetCharCapsuleHalfHeight()
+{
+	return GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+}
+
+FVector ATraversalCharacter::GetCharForwardVector()
+{
+	return GetCapsuleComponent()->GetForwardVector();
+}
+
+float ATraversalCharacter::GetCharSpeed()
+{	
+	return GetCharacterMovement()->Velocity.Length();
+}
+
+void ATraversalCharacter::SetCharCollisionAndMovementMode(ECollisionEnabled::Type Collision, EMovementMode MoveMode)
+{
+	GetCapsuleComponent()->SetCollisionEnabled(Collision);
+	GetCharacterMovement()->SetMovementMode(MoveMode, 0);
+}
+
 void ATraversalCharacter::SprintOngoing(const FInputActionValue& Value)
 {
 	if (Controller != nullptr)
@@ -206,7 +232,7 @@ void ATraversalCharacter::SprintCompleted(const FInputActionValue& Value)
 	}
 }
 
-void ATraversalCharacter::ParkourTrigered(const FInputActionValue& Value)
+void ATraversalCharacter::ParkourStarted(const FInputActionValue& Value)
 {
 	//UE_LOG(LogTemp, Log, TEXT("Special!!"));
 	if (AbilitySystemComponent)
