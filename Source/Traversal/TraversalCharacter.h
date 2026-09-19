@@ -44,11 +44,37 @@ class ATraversalCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/** Sprint Input Action **/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SprintAction;
+
+	/** Parkour Input Action **/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SpecialAction;
+
 public:
 	ATraversalCharacter();
 	
+	/** Max character speed while sprinting **/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float CharSprintSpeed = 800.f;
+
+	/** Default character speed **/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DefCharSprintSpeed = 0.f;
+
+	UFUNCTION()
+	bool GetIsSprinting();
+
+	UFUNCTION()
+	void SetIsSprinting(bool Sprinting);
+
+	UFUNCTION()
+	float GetDefCharWalkSpeed();
 
 protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -56,7 +82,21 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 			
+	/** Called when use Sprint key **/
+	UFUNCTION()
+	void SprintOngoing(const FInputActionValue& Value);
+	/** Called when Sprint key is canceled **/
+	UFUNCTION()
+	void SprintCanceled(const FInputActionValue& Value);
+	/** Called when Sprint key is completed **/
+	UFUNCTION()
+	void SprintCompleted(const FInputActionValue& Value);
 
+	/** Called when use Parkour Special key **/
+	UFUNCTION()
+	void ParkourTrigered(const FInputActionValue& Value);
+
+	bool bIsSprinting = false;
 protected:
 
 	virtual void NotifyControllerChanged() override;

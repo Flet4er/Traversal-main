@@ -52,6 +52,14 @@ ATraversalCharacter::ATraversalCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	DefCharSprintSpeed = GetCharacterMovement()->MaxWalkSpeed;
+}
+
+void ATraversalCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,6 +93,14 @@ void ATraversalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATraversalCharacter::Look);
+
+		// Sprinting
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Ongoing, this, &ATraversalCharacter::SprintOngoing);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Canceled, this, &ATraversalCharacter::SprintCanceled);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATraversalCharacter::SprintCompleted);
+
+		//Parkour
+		EnhancedInputComponent->BindAction(SpecialAction, ETriggerEvent::Triggered, this, &ATraversalCharacter::ParkourTrigered);
 	}
 	else
 	{
@@ -126,4 +142,53 @@ void ATraversalCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ATraversalCharacter::SetIsSprinting(bool Sprinting)
+{
+	bIsSprinting = Sprinting;
+}
+
+bool ATraversalCharacter::GetIsSprinting()
+{
+	return(bIsSprinting);
+}
+
+float ATraversalCharacter::GetDefCharWalkSpeed()
+{
+	return(DefCharSprintSpeed);
+}
+
+void ATraversalCharacter::SprintOngoing(const FInputActionValue& Value)
+{
+	if (Controller != nullptr)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CharSprintSpeed;
+
+		SetIsSprinting(true);
+	}
+}
+void ATraversalCharacter::SprintCanceled(const FInputActionValue& Value)
+{
+	if (Controller != nullptr)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = DefCharSprintSpeed;
+
+		SetIsSprinting(false);
+	}
+}
+void ATraversalCharacter::SprintCompleted(const FInputActionValue& Value)
+{
+	if (Controller != nullptr)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = DefCharSprintSpeed;
+
+		SetIsSprinting(false);
+	}
+}
+
+void ATraversalCharacter::ParkourTrigered(const FInputActionValue& Value)
+{
+
+	UE_LOG(LogTemp, Log, TEXT("Special!!"));
 }
