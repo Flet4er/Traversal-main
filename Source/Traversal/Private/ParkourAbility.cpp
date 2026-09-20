@@ -105,83 +105,14 @@ void UParkourAbility::ActivateAbility(
 				if (WallHeight.Z > MantlingHeightPoint)
 				{
 					//mantle
-					UE_LOG(LogTemp, Log, TEXT("mantle!!"));
-					
-					QueryParam.AddIgnoredActor(Character);
-					FCollisionObjectQueryParams ObjectParams;
-					ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
-					ObjectParams.AddObjectTypesToQuery(ECC_PhysicsBody);		
-
-					//Check if top of the wall is blocked	(4)
-					bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, WallTopPoint + FVector(0, 0, 2), (FVector(0, 0, 1) * CapsuleHalfHeight * 2) + WallTopPoint2, ObjectParams, QueryParam);
-					//DrawDebugLineTraceSingle(GetWorld(), WallTopPoint+FVector(0,0,2), (FVector(0, 0, 1)*CapsuleHalfHeight*2)+WallTopPoint2, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::White, FColor::Green, 10);
-
-					if (bHit)
-					{
-						EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
-						return;
-					}
-
-					Character->SetCharCollisionAndMovementMode(ECollisionEnabled::NoCollision, EMovementMode::MOVE_Flying);
-
-					FVector NewLocation;
-					FVector XYLoc = UKismetMathLibrary::GetForwardVector(UKismetMathLibrary::MakeRotFromX(WallNormal)) * DistanceToWall + Character->GetActorLocation();
-
-					//1.5m mantle or 1m
-					if ((WallTopPoint.Z - WallLocation.Z) > MantleDifference)
-					{
-						
-						NewLocation = FVector(XYLoc.X, XYLoc.Y, WallTopPoint.Z - Character->GetCharCapsuleHalfHeight() + Parkour1_5m);
-						Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
-
-						PlayMontage(ParkourMontageMantle_1_5m);
-						UE_LOG(LogTemp, Log, TEXT("mantle 1.5m!!"));
-					}
-					else
-					{
-						NewLocation = FVector(XYLoc.X, XYLoc.Y, WallTopPoint.Z - Character->GetCharCapsuleHalfHeight() + Parkour1m);
-						Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
-
-						PlayMontage(ParkourMontageMantle_1m);
-						UE_LOG(LogTemp, Log, TEXT("mantle 1m!!"));
-					}
+					UseMantle(Character, WallTopPoint, WallTopPoint2, WallNormal, WallLocation);
 				}
 				else
 				{
 					//vault
 					UE_LOG(LogTemp, Log, TEXT("vault!!"));
 
-					if (!bIsWallThick)
-					{
-						Character->SetCharCollisionAndMovementMode(ECollisionEnabled::NoCollision, EMovementMode::MOVE_Flying);
-
-						FVector NewLocation;
-
-						//change vault anim based on movespeed
-						if (Character->GetCharSpeed() > ChangeVaultingSpeed)
-						{
-							NewLocation = Character->GetActorLocation() + (WallNormal * DistanceToWall);
-							NewLocation = FVector(NewLocation.X, NewLocation.Y, WallTopPoint.Z + ParkourVault);
-							Character->SetActorLocation(NewLocation, false, nullptr,ETeleportType::TeleportPhysics);
-
-							PlayMontage(ParkourMontageVaultFast);
-							UE_LOG(LogTemp, Log, TEXT("fast vault!!"));
-						}
-						else
-						{
-							NewLocation = FVector(Character->GetActorLocation().X, Character->GetActorLocation().Y, WallTopPoint.Z + ParkourVault);
-							Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
-
-							PlayMontage(ParkourMontageVaultNormal);
-							UE_LOG(LogTemp, Log, TEXT("normal vault!!"));
-						}
-					}
-					else
-					{
-						//Here need new animation
-						EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
-						return;
-					}
+					UseVault(bIsWallThick, Character, WallNormal, WallTopPoint);
 				}
 
 			}
@@ -206,6 +137,107 @@ void UParkourAbility::ActivateAbility(
 		return;
 	}
 	
+}
+
+void UParkourAbility::UseMantle(ATraversalCharacter* Character,FVector WallTopPoint,FVector WallTopPoint2, FVector WallNormal, FVector WallLocation)
+{
+	UE_LOG(LogTemp, Log, TEXT("mantle!!"));
+
+	FCollisionQueryParams QueryParam;
+	QueryParam.AddIgnoredActor(Character);
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectParams.AddObjectTypesToQuery(ECC_PhysicsBody);
+
+	bool bHit = false;
+	FHitResult HitResult;
+	float CapsuleHalfHeight = Character->GetCharCapsuleHalfHeight();
+	//Check if top of the wall is blocked	(4)
+	bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, WallTopPoint + FVector(0, 0, 2), (FVector(0, 0, 1) * CapsuleHalfHeight * 2) + WallTopPoint2, ObjectParams, QueryParam);
+	//DrawDebugLineTraceSingle(GetWorld(), WallTopPoint+FVector(0,0,2), (FVector(0, 0, 1)*CapsuleHalfHeight*2)+WallTopPoint2, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::White, FColor::Green, 10);
+
+	if (bHit)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+		return;
+	}
+
+	Character->SetCharCollisionAndMovementMode(ECollisionEnabled::NoCollision, EMovementMode::MOVE_Flying);
+
+	FVector NewLocation;
+	FVector XYLoc = UKismetMathLibrary::GetForwardVector(UKismetMathLibrary::MakeRotFromX(WallNormal)) * DistanceToWall + Character->GetActorLocation();
+
+	//1.5m mantle or 1m
+	if ((WallTopPoint.Z - WallLocation.Z) > MantleDifference)
+	{
+
+		NewLocation = FVector(XYLoc.X, XYLoc.Y, WallTopPoint.Z - Character->GetCharCapsuleHalfHeight() + Parkour1_5m);
+		Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+		PlayMontage(ParkourMontageMantle_1_5m);
+		UE_LOG(LogTemp, Log, TEXT("mantle 1.5m!!"));
+	}
+	else
+	{
+		NewLocation = FVector(XYLoc.X, XYLoc.Y, WallTopPoint.Z - Character->GetCharCapsuleHalfHeight() + Parkour1m);
+		Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+		PlayMontage(ParkourMontageMantle_1m);
+		UE_LOG(LogTemp, Log, TEXT("mantle 1m!!"));
+	}
+}
+
+
+void UParkourAbility::UseVault(bool IsWallThick, ATraversalCharacter* Character,FVector WallNormal,FVector WallTopPoint)
+{
+	if (!IsWallThick)
+	{
+		Character->SetCharCollisionAndMovementMode(ECollisionEnabled::NoCollision, EMovementMode::MOVE_Flying);
+
+		FVector NewLocation;
+
+		//change vault anim based on movespeed
+		if (Character->GetCharSpeed() > ChangeVaultingSpeed)
+		{
+			NewLocation = Character->GetActorLocation() + (WallNormal * DistanceToWall);
+			NewLocation = FVector(NewLocation.X, NewLocation.Y, WallTopPoint.Z + ParkourVault);
+			Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+			PlayMontage(ParkourMontageVaultFast);
+			UE_LOG(LogTemp, Log, TEXT("fast vault!!"));
+		}
+		else
+		{
+			NewLocation = FVector(Character->GetActorLocation().X, Character->GetActorLocation().Y, WallTopPoint.Z + ParkourVault);
+			Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+			PlayMontage(ParkourMontageVaultNormal);
+			UE_LOG(LogTemp, Log, TEXT("normal vault!!"));
+		}
+	}
+	else
+	{
+		//Here need new animation
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+		return;
+	}
+}
+
+void UParkourAbility::PlayMontage(UAnimMontage* MontageToPlay)
+{
+	if (this)
+	{
+	UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, MontageToPlay);
+	Task->OnCompleted.AddDynamic(this, &UParkourAbility::OnMontageDone);
+	Task->OnCancelled.AddDynamic(this, &UParkourAbility::OnMontageInterupted);
+	Task->OnInterrupted.AddDynamic(this, &UParkourAbility::OnMontageInterupted);
+	Task->ReadyForActivation();
+	UE_LOG(LogTemp, Log, TEXT("Montage start playing"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("Wtf"));
+	}
 }
 
 void UParkourAbility::OnMontageDone()
@@ -234,21 +266,4 @@ void UParkourAbility::OnMontageInterupted()
 	Character->SetCharCollisionAndMovementMode(ECollisionEnabled::QueryAndPhysics, EMovementMode::MOVE_Walking);
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 	UE_LOG(LogTemp, Log, TEXT("Montage Interupted"));
-}
-
-void UParkourAbility::PlayMontage(UAnimMontage* MontageToPlay)
-{
-	if (this)
-	{
-	UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, MontageToPlay);
-	Task->OnCompleted.AddDynamic(this, &UParkourAbility::OnMontageDone);
-	Task->OnCancelled.AddDynamic(this, &UParkourAbility::OnMontageInterupted);
-	Task->OnInterrupted.AddDynamic(this, &UParkourAbility::OnMontageInterupted);
-	Task->ReadyForActivation();
-	UE_LOG(LogTemp, Log, TEXT("Montage start playing"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("Wtf"));
-	}
 }
