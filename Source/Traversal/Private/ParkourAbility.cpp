@@ -6,6 +6,7 @@
 #include "KismetTraceUtils.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "TimerManager.h"
 
 UParkourAbility::UParkourAbility()
 {
@@ -55,7 +56,7 @@ void UParkourAbility::ActivateAbility(
 
 	//find neerest obstacle  (1)
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Parkour, QueryParam);
-	DrawDebugLineTraceSingle(GetWorld(), Start, End, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::Red, FColor::Green, 10);
+	//DrawDebugLineTraceSingle(GetWorld(), Start, End, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::Red, FColor::Green, 10);
 
 	//if hit parkour obsticle
 	if (bHit)
@@ -69,7 +70,7 @@ void UParkourAbility::ActivateAbility(
 		
 		//Check obstacle top point	(2)
 		bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Parkour, QueryParam);
-		DrawDebugLineTraceSingle(GetWorld(), Start, End, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::Yellow, FColor::Green, 10);
+		//DrawDebugLineTraceSingle(GetWorld(), Start, End, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::Yellow, FColor::Green, 10);
 
 		//check if height is OK to climb or vault
 		if (bHit)
@@ -87,7 +88,7 @@ void UParkourAbility::ActivateAbility(
 
 				//get neer wall top point2	(3)
 				bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Parkour, QueryParam);
-				DrawDebugLineTraceSingle(GetWorld(), Start, End, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::Purple, FColor::Green, 10);
+				//DrawDebugLineTraceSingle(GetWorld(), Start, End, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::Purple, FColor::Green, 10);
 
 				if (bHit)
 				{
@@ -113,7 +114,7 @@ void UParkourAbility::ActivateAbility(
 
 					//Check if top of the wall is blocked	(4)
 					bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, WallTopPoint + FVector(0, 0, 2), (FVector(0, 0, 1) * CapsuleHalfHeight * 2) + WallTopPoint2, ObjectParams, QueryParam);
-					DrawDebugLineTraceSingle(GetWorld(), WallTopPoint+FVector(0,0,2), (FVector(0, 0, 1)*CapsuleHalfHeight*2)+WallTopPoint2, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::White, FColor::Green, 10);
+					//DrawDebugLineTraceSingle(GetWorld(), WallTopPoint+FVector(0,0,2), (FVector(0, 0, 1)*CapsuleHalfHeight*2)+WallTopPoint2, EDrawDebugTrace::Persistent, bHit, HitResult, FColor::White, FColor::Green, 10);
 
 					if (bHit)
 					{
@@ -130,20 +131,18 @@ void UParkourAbility::ActivateAbility(
 					if ((WallTopPoint.Z - WallLocation.Z) > MantleDifference)
 					{
 						
-						NewLocation = FVector(XYLoc.X, XYLoc.Y, WallTopPoint.Z - Character->GetCharCapsuleHalfHeight() - Parkour1_5m);
-						Character->SetActorLocation(NewLocation);
-						if(ParkourMontageMantle_1_5m)
-						PlayMontage(ParkourMontageMantle_1_5m);
+						NewLocation = FVector(XYLoc.X, XYLoc.Y, WallTopPoint.Z - Character->GetCharCapsuleHalfHeight() + Parkour1_5m);
+						Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
 
+						PlayMontage(ParkourMontageMantle_1_5m);
 						UE_LOG(LogTemp, Log, TEXT("mantle 1.5m!!"));
 					}
 					else
 					{
-						NewLocation = FVector(XYLoc.X, XYLoc.Y, WallTopPoint.Z - Character->GetCharCapsuleHalfHeight() - Parkour1m);
-						Character->SetActorLocation(NewLocation);
+						NewLocation = FVector(XYLoc.X, XYLoc.Y, WallTopPoint.Z - Character->GetCharCapsuleHalfHeight() + Parkour1m);
+						Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
 
 						PlayMontage(ParkourMontageMantle_1m);
-
 						UE_LOG(LogTemp, Log, TEXT("mantle 1m!!"));
 					}
 				}
@@ -162,20 +161,18 @@ void UParkourAbility::ActivateAbility(
 						if (Character->GetCharSpeed() > ChangeVaultingSpeed)
 						{
 							NewLocation = Character->GetActorLocation() + (WallNormal * DistanceToWall);
-							NewLocation = FVector(NewLocation.X, NewLocation.Y, WallTopPoint.Z - DistanceToWall);
-							Character->SetActorLocation(NewLocation);
+							NewLocation = FVector(NewLocation.X, NewLocation.Y, WallTopPoint.Z + ParkourVault);
+							Character->SetActorLocation(NewLocation, false, nullptr,ETeleportType::TeleportPhysics);
 
 							PlayMontage(ParkourMontageVaultFast);
-
 							UE_LOG(LogTemp, Log, TEXT("fast vault!!"));
 						}
 						else
 						{
-							NewLocation = FVector(Character->GetActorLocation().X, Character->GetActorLocation().Y, WallTopPoint.Z - DistanceToWall);
-							Character->SetActorLocation(NewLocation);
+							NewLocation = FVector(Character->GetActorLocation().X, Character->GetActorLocation().Y, WallTopPoint.Z + ParkourVault);
+							Character->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
 
 							PlayMontage(ParkourMontageVaultNormal);
-
 							UE_LOG(LogTemp, Log, TEXT("normal vault!!"));
 						}
 					}
@@ -243,7 +240,7 @@ void UParkourAbility::PlayMontage(UAnimMontage* MontageToPlay)
 {
 	if (this)
 	{
-	UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, MontageToPlay/*, 1.f, NAME_None, false, 1.f, 0.f*/);
+	UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, MontageToPlay);
 	Task->OnCompleted.AddDynamic(this, &UParkourAbility::OnMontageDone);
 	Task->OnCancelled.AddDynamic(this, &UParkourAbility::OnMontageInterupted);
 	Task->OnInterrupted.AddDynamic(this, &UParkourAbility::OnMontageInterupted);

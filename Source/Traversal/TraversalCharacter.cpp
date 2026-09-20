@@ -119,7 +119,7 @@ void ATraversalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATraversalCharacter::SprintCompleted);
 
 		//Parkour
-		EnhancedInputComponent->BindAction(SpecialAction, ETriggerEvent::Started, this, &ATraversalCharacter::ParkourStarted);
+		EnhancedInputComponent->BindAction(SpecialAction, ETriggerEvent::Triggered, this, &ATraversalCharacter::ParkourTriggered);
 	}
 	else
 	{
@@ -232,7 +232,7 @@ void ATraversalCharacter::SprintCompleted(const FInputActionValue& Value)
 	}
 }
 
-void ATraversalCharacter::ParkourStarted(const FInputActionValue& Value)
+void ATraversalCharacter::ParkourTriggered(const FInputActionValue& Value)
 {
 	//UE_LOG(LogTemp, Log, TEXT("Special!!"));
 	if (AbilitySystemComponent)

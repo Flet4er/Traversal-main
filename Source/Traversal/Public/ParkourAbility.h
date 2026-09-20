@@ -28,13 +28,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* ParkourMontageVaultNormal;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parkour")
-	float Parkour1_5m = -30.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourBalanc")
+	float Parkour1_5m = 30.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parkour")
-	float Parkour1m = -82.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourBalanc")
+	float Parkour1m = 82.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourBalanc")
+	float ParkourVault = -10.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parkour")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourBalanc")
 	float DistanceToWall = 20.f;
 
 protected:
@@ -44,13 +46,26 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
-	const float MaxWallHeightToClimb = 200.f;
-	const float MantlingHeightPoint = 90.f;
-	const float MaxWallDetection = 85.f;
-	const float WallThicknessCheck = 60.f;
-	const float MaxHeightDifference = 20.f;
-	const float ChangeVaultingSpeed = 700.f;
-	const float MantleDifference = 130.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourConst")
+	float MaxWallHeightToClimb = 200.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourConst")
+	float MantlingHeightPoint = 60.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourConst")
+	float MaxWallDetection = 85.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourConst")
+	float WallThicknessCheck = 60.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourConst")
+	float MaxHeightDifference = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourConst")
+	float ChangeVaultingSpeed = 700.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ParkourConst")
+	float MantleDifference = 130.f;
 
 	UFUNCTION()
 	void OnMontageDone();

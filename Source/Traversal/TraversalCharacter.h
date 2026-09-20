@@ -51,7 +51,7 @@ class ATraversalCharacter : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SprintAction;
 
-	/** Parkour Input Action **/
+	/** Parkour Input Mantle Action **/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SpecialAction;
 
@@ -116,9 +116,10 @@ protected:
 	UFUNCTION()
 	void SprintCompleted(const FInputActionValue& Value);
 
-	/** Called when use Parkour Special key **/
+	/** Called when use Parkour Mantle key **/
 	UFUNCTION()
-	void ParkourStarted(const FInputActionValue& Value);
+	void ParkourTriggered(const FInputActionValue& Value);
+
 
 	bool bIsSprinting = false;
 
